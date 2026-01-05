@@ -2,29 +2,110 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Natwithat | Engineering</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Natwithat | Engineering Portfolio</title>
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=Outfit:wght@400;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=Outfit:wght@300;600;800&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #020617; --accent: #38bdf8; --border: rgba(255,255,255,0.1); }
-        body { background: var(--bg); color: #f8fafc; font-family: 'Outfit', sans-serif; }
-        nav { position: fixed; top: 0; width: 100%; padding: 20px 10%; display: flex; justify-content: space-between; backdrop-filter: blur(10px); z-index: 100; border-bottom: 1px solid var(--border); }
-        .hero { height: 100vh; display: flex; align-items: center; padding: 0 10%; }
-        h1 { font-size: 5rem; font-weight: 800; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 30px; padding: 100px 10%; }
-        .card { position: relative; height: 500px; border-radius: 24px; overflow: hidden; border: 1px solid var(--border); background: #111; }
-        .overlay { position: relative; z-index: 2; height: 100%; padding: 40px; display: flex; flex-direction: column; justify-content: flex-end; }
+        :root { --bg: #030712; --accent: #38bdf8; --border: rgba(255, 255, 255, 0.1); }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: var(--bg); color: #f8fafc; font-family: 'Outfit', sans-serif; overflow-x: hidden; }
+        
+        nav { position: fixed; top: 0; width: 100%; padding: 25px 10%; display: flex; justify-content: space-between; backdrop-filter: blur(15px); z-index: 100; border-bottom: 1px solid var(--border); }
+        .logo { font-family: 'Space Mono', monospace; font-weight: 800; color: var(--accent); letter-spacing: 2px; }
+
+        .hero { height: 80vh; display: flex; flex-direction: column; justify-content: center; padding: 0 10%; }
+        .hero h1 { font-size: clamp(3rem, 8vw, 6rem); font-weight: 800; line-height: 1; }
+
+        /* Categorized Grid */
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 30px; padding: 50px 10%; }
+        
+        .project-card { 
+            position: relative; height: 550px; border-radius: 24px; overflow: hidden; 
+            border: 1px solid var(--border); background: #000; transition: 0.5s ease;
+        }
+
+        .video-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+        video { width: 100%; height: 100%; object-fit: cover; opacity: 0.4; transition: 0.6s; filter: grayscale(20%); }
+        .project-card:hover video { opacity: 0.9; transform: scale(1.05); filter: grayscale(0%); }
+
+        .overlay { 
+            position: relative; z-index: 2; height: 100%; padding: 40px; 
+            display: flex; flex-direction: column; justify-content: flex-end;
+            background: linear-gradient(0deg, rgba(3,7,18,1) 10%, rgba(3,7,18,0) 60%);
+        }
+
+        .tag { font-family: 'Space Mono', monospace; color: var(--accent); font-size: 0.75rem; text-transform: uppercase; margin-bottom: 8px; }
+        h3 { font-size: 2.5rem; font-weight: 800; margin-bottom: 10px; }
+        p { color: #94a3b8; font-size: 1rem; line-height: 1.5; max-width: 90%; }
+
+        .admin-edit { position: fixed; bottom: 20px; left: 20px; z-index: 1000; opacity: 0.3; transition: 0.3s; }
+        .admin-edit:hover { opacity: 1; }
     </style>
 </head>
 <body>
-    <nav><div>NATWITHAT_ENG</div></nav>
-    <section class="hero"><h1 data-aos="fade-up">HARDWARE.<br><span style="color:var(--accent)">INTELLIGENCE.</span></h1></section>
+
+    <nav>
+        <div class="logo">NATWITHAT_SYSTEMS_v1</div>
+        <div style="font-family: 'Space Mono'; font-size: 0.8rem;">[ 2026_PORTFOLIO ]</div>
+    </nav>
+
+    <section class="hero">
+        <h1 data-aos="fade-right">ENGINEERING<br><span style="color:var(--accent)">HARDWARE.</span></h1>
+        <p style="margin-top: 20px; color: #64748b; font-family: 'Space Mono';">/ Root / Projects / Fabrication_and_Design</p>
+    </section>
+
     <div class="grid">
-        <div class="card" data-aos="zoom-in">
-            <div class="overlay"><h3>Project Alpha</h3><p>Videos will appear here once uploaded.</p></div>
+        <div class="project-card" data-aos="fade-up">
+            <div class="video-container">
+                <video autoplay loop muted playsinline><source src="welding.mp4" type="video/mp4"></video>
+            </div>
+            <div class="overlay">
+                <div class="tag">// 01_FABRICATION</div>
+                <h3 contenteditable="true">Box Frame Welding</h3>
+                <p contenteditable="true">Structural MIG/TIG welding for high-strength robotics chassis. Focused on heat-affected zone management and square-alignment precision.</p>
+            </div>
+        </div>
+
+        <div class="project-card" data-aos="fade-up" data-aos-delay="100">
+            <div class="video-container">
+                <video autoplay loop muted playsinline><source src="laser.mp4" type="video/mp4"></video>
+            </div>
+            <div class="overlay">
+                <div class="tag">// 02_CNC_MACHINING</div>
+                <h3 contenteditable="true">Laser Processing</h3>
+                <p contenteditable="true">Operating CO2 laser systems for intricate component cutting and raster engraving in acrylic and wood mediums.</p>
+            </div>
+        </div>
+
+        <div class="project-card" data-aos="fade-up">
+            <div class="video-container">
+                <video autoplay loop muted playsinline><source src="autocad.mp4" type="video/mp4"></video>
+            </div>
+            <div class="overlay">
+                <div class="tag">// 03_2D_DRAFTING</div>
+                <h3 contenteditable="true">AutoCAD Layouts</h3>
+                <p contenteditable="true">Creating technical schematics and architectural floor plans with strict adherence to ISO standards and layering conventions.</p>
+            </div>
+        </div>
+
+        <div class="project-card" data-aos="fade-up" data-aos-delay="100">
+            <div class="video-container">
+                <video autoplay loop muted playsinline><source src="onshape.mp4" type="video/mp4"></video>
+            </div>
+            <div class="overlay">
+                <div class="tag">// 04_3D_MODELING</div>
+                <h3 contenteditable="true">Onshape Assembly</h3>
+                <p contenteditable="true">Parametric cloud-based 3D modeling. Designing multi-part assemblies with complex kinematic constraints and mating logic.</p>
+            </div>
         </div>
     </div>
+
+    <div class="admin-edit">
+        <button onclick="alert('Text is now editable! Just click and type.')" style="background:none; color:var(--accent); border:1px solid var(--accent); padding:5px 10px; cursor:pointer; font-family:'Space Mono'; font-size:0.7rem;">DEV_MODE</button>
+    </div>
+
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <script>AOS.init();</script>
+    <script>AOS.init({ duration: 1000, once: true });</script>
 </body>
 </html>
