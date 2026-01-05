@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Natwithat | Engineering OS v11</title>
+    <title>Natwithat | Engineering OS v12</title>
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=Outfit:wght@300;600;800&family=Lexend+Exa:wght@200;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
@@ -18,12 +18,12 @@
             position: fixed; left: -280px; top: 0; height: 100vh; width: 260px;
             background: #111; border-right: 1px solid #222; padding: 30px 20px;
             display: flex; flex-direction: column; gap: 10px; z-index: 1000; transition: 0.5s;
-            overflow-y: auto; box-shadow: 20px 0 50px rgba(0,0,0,0.5);
+            overflow-y: auto;
         }
         #adminSidebar.open { left: 0; }
         #lockCircle { position: fixed; top: 20px; right: 20px; width: 15px; height: 15px; background: rgba(255,255,255,0.05); border-radius: 50%; cursor: pointer; z-index: 2001; }
 
-        /* Buttons & Sliders */
+        /* Sidebar UI */
         .prop-group { border-top: 1px solid #222; padding-top: 10px; margin-top: 10px; }
         .prop-group label { font-size: 10px; color: #666; font-family: 'Space Mono'; display: block; margin-bottom: 5px; }
         button.admin-btn { background: #1a1a1a; color: #eee; border: 1px solid #333; padding: 10px; border-radius: 8px; cursor: pointer; text-align: left; font-size: 0.8rem; width: 100%; transition: 0.2s; }
@@ -33,24 +33,30 @@
         #workspace { margin: 0 auto; padding: 100px 10%; min-height: 100vh; transition: 0.5s; display: flex; flex-direction: column; gap: 20px; }
         #workspace.admin-active { margin-left: 260px; }
 
-        /* Items */
+        /* Draggable Items */
         .drag-item { position: relative; transition: 0.2s; padding: 10px; border: 1px solid transparent; }
-        .card { background: rgba(20,20,20,0.8); border: 1px solid #333; border-radius: 15px; padding: 40px; min-height: 250px; display: flex; flex-direction: column; justify-content: flex-end; cursor: pointer; position: relative; overflow: hidden; }
-        .card-img-bg { position: absolute; top:0; left:0; width:100%; height:100%; object-fit: cover; opacity: 0.3; z-index: 0; pointer-events: none; }
+        .card { 
+            background: rgba(20,20,20,0.8); border: 1px solid #333; border-radius: 15px; 
+            padding: 40px; min-height: 280px; display: flex; flex-direction: column; 
+            justify-content: flex-end; cursor: pointer; position: relative; overflow: hidden;
+            box-shadow: 0 0 0px transparent; transition: 0.3s;
+        }
+        .card-img-bg { position: absolute; top:0; left:0; width:100%; height:100%; object-fit: cover; opacity: 0.2; z-index: 0; pointer-events: none; }
         .card-content { position: relative; z-index: 1; }
         
         .delete-item { position: absolute; top: 0; right: 0; background: #ff4444; border: none; color: white; padding: 2px 8px; border-radius: 4px; font-size: 10px; cursor: pointer; display: none; z-index: 100; }
         .admin-active .drag-item:hover .delete-item { display: block; }
         .admin-active .drag-item:hover { border: 1px dashed var(--accent); cursor: grab; }
 
-        /* Full Screen Folder View */
+        /* Full Screen Project View */
         #folderView { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 2000; display: none; grid-template-columns: 1fr 1fr; }
-        .f-left { padding: 5% 10%; overflow-y: auto; display: flex; flex-direction: column; justify-content: center; }
-        .f-right { background: #080808; display: flex; align-items: center; justify-content: center; border-left: 1px solid #222; position: relative; overflow: hidden; }
+        .f-left { padding: 5% 8%; overflow-y: auto; display: flex; flex-direction: column; justify-content: center; background: #050505; }
+        .f-right { background: #000; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
         .f-right img, .f-right video { width: 100%; height: 100%; object-fit: cover; }
         
         .visitor-mode { opacity: 0.5; pointer-events: none !important; }
         .editable { outline: none; }
+        .selected-box { border: 2px solid var(--accent) !important; }
     </style>
 </head>
 <body id="mainBody">
@@ -60,28 +66,32 @@
     <div id="adminSidebar">
         <h2 id="modeDisplay" style="font-size:0.7rem; color:var(--accent); font-family:'Space Mono';">LOCKED</h2>
         <div id="editorUI">
-            <button class="admin-btn" onclick="addHeading()">+ Heading</button>
-            <button class="admin-btn" onclick="addText()">+ Text Box</button>
+            <button class="admin-btn" onclick="addHeading()">+ New Heading</button>
+            <button class="admin-btn" onclick="addText()">+ New Text Box</button>
             <button class="admin-btn" onclick="addBox()">+ Project Folder</button>
             
             <div class="prop-group">
-                <label>Style Controls</label>
-                <select onchange="document.body.style.fontFamily = this.value" class="admin-btn" style="width:100%;">
-                    <option value="'Outfit'">Modern</option>
-                    <option value="'Space Mono'">Terminal</option>
-                    <option value="'Lexend Exa'">Blueprint</option>
-                </select>
-                <input type="color" id="itemColor" style="width:100%; margin-top:5px; height:30px; border:none; background:none;">
+                <label>Neon Glow Engine</label>
+                <input type="color" id="glowColor" style="width:100%; height:30px; border:none; background:none; cursor:pointer;">
+                <label>Glow Strength</label>
+                <input type="range" id="glowRange" min="0" max="80" value="0">
             </div>
 
             <div class="prop-group">
-                <label>Visuals</label>
-                <button class="admin-btn" onclick="document.getElementById('bgIn').click()">Set Background</button>
-                <button class="admin-btn" style="color:#ff4444;" onclick="removeBG()">Remove Background</button>
+                <label>Box Style</label>
+                <input type="color" id="itemColor" style="width:100%; height:30px; border:none; background:none;">
+                <label>Corner Rounding</label>
+                <input type="range" id="itemRound" min="0" max="100" value="15">
+            </div>
+
+            <div class="prop-group">
+                <label>Global Canvas</label>
+                <button class="admin-btn" onclick="document.getElementById('bgIn').click()">Set BG Image</button>
+                <button class="admin-btn" style="color:#ff4444;" onclick="removeBG()">Clear BG</button>
                 <input type="file" id="bgIn" hidden onchange="setMainBG(this)">
             </div>
 
-            <button class="admin-btn" style="background:#fff; color:#000; margin-top:20px;" onclick="downloadResume()">Export PDF Resume</button>
+            <button class="admin-btn" style="background:#fff; color:#000; margin-top:20px;" onclick="downloadResume()">Export PDF</button>
             <button class="admin-btn" style="background:var(--accent); color:#000; font-weight:bold; margin-top:10px;" onclick="saveAndLock()">SAVE & LOCK</button>
         </div>
     </div>
@@ -95,14 +105,14 @@
 
     <div id="folderView">
         <div class="f-left">
-            <button onclick="closeFolder()" style="width:fit-content; background:none; border:1px solid #444; color:white; padding:10px 20px; cursor:pointer; margin-bottom:40px;">← CLOSE PROJECT</button>
+            <button onclick="closeFolder()" style="width:fit-content; background:none; border:1px solid #444; color:white; padding:10px 20px; cursor:pointer; margin-bottom:40px;">← BACK TO GRID</button>
             <h2 id="fTitle" contenteditable="true" class="editable" style="font-size:4.5rem; line-height:1;">Project Name</h2>
-            <div id="fDesc" contenteditable="true" class="editable" style="color:#888; margin-top:30px; font-size:1.2rem; line-height:1.6;">Start typing the full project breakdown here...</div>
+            <div id="fDesc" contenteditable="true" class="editable" style="color:#888; margin-top:30px; font-size:1.2rem; line-height:1.6;">Detailed technical breakdown goes here...</div>
         </div>
         <div class="f-right" id="fMedia">
             <input type="file" id="mediaIn" hidden onchange="processMedia(this)">
-            <button id="uploadBtn" onclick="document.getElementById('mediaIn').click()" style="position:absolute; z-index:10; background:var(--accent); border:none; padding:15px 30px; border-radius:50px; cursor:pointer; font-weight:bold;">REPLACE MEDIA</button>
-            <div style="color:#222; font-family:'Space Mono';">DRAG IMAGE HERE</div>
+            <button id="uploadBtn" onclick="document.getElementById('mediaIn').click()" style="position:absolute; z-index:10; background:var(--accent); border:none; padding:15px 30px; border-radius:50px; cursor:pointer; font-weight:bold;">CHANGE MEDIA</button>
+            <div style="color:#222; font-family:'Space Mono';">EMPTY MEDIA SLOT</div>
         </div>
     </div>
 
@@ -113,7 +123,7 @@
         const sortable = new Sortable(workspace, { animation: 200, disabled: true });
 
         function unlock() {
-            const pw = prompt("Password:");
+            const pw = prompt("Identity Check:");
             if (pw === "shark") { mode = "admin"; setupUI(false); }
             else if (pw === "ilovenathan") { mode = "visitor"; setupUI(true); }
         }
@@ -121,7 +131,7 @@
         function setupUI(isVisitor) {
             document.getElementById('adminSidebar').classList.add('open');
             workspace.classList.add('admin-active');
-            document.getElementById('modeDisplay').innerText = isVisitor ? "VISITOR" : "ADMIN";
+            document.getElementById('modeDisplay').innerText = isVisitor ? "VISITOR MODE" : "SHARK ADMIN";
             if (isVisitor) document.getElementById('editorUI').classList.add('visitor-mode');
             else sortable.option("disabled", false);
         }
@@ -133,9 +143,9 @@
                 <button class="delete-item" onclick="this.parentElement.remove()">×</button>
                 <div class="card" onclick="selectItem(this)">
                     <div class="card-content">
-                        <h3 contenteditable="true" class="editable">Project Title</h3>
-                        <p contenteditable="true" class="editable" style="color:#777;">Click to expand details...</p>
-                        <button onclick="openFolder(this.parentElement.parentElement)" style="margin-top:15px; background:var(--accent); border:none; padding:10px; border-radius:5px; font-weight:bold; cursor:pointer;">OPEN FULLSCREEN</button>
+                        <h3 contenteditable="true" class="editable">New Project</h3>
+                        <p contenteditable="true" class="editable" style="color:#777;">Brief overview...</p>
+                        <button onclick="openFolder(this.parentElement.parentElement)" style="margin-top:15px; background:var(--accent); color:black; border:none; padding:8px 15px; border-radius:5px; font-weight:bold; cursor:pointer;">VIEW CASE STUDY</button>
                     </div>
                 </div>`;
             workspace.appendChild(div);
@@ -153,20 +163,36 @@
             const div = document.createElement('div');
             div.className = 'drag-item';
             div.innerHTML = `<button class="delete-item" onclick="this.parentElement.remove()">×</button>
-                             <p contenteditable="true" class="editable" style="color:#aaa; line-height:1.6; max-width:800px;">Project description text...</p>`;
+                             <p contenteditable="true" class="editable" style="color:#aaa; line-height:1.6; max-width:800px;">Write your description here...</p>`;
             workspace.appendChild(div);
         }
 
         function selectItem(card) {
             if(mode !== "admin") return;
+            document.querySelectorAll('.card').forEach(c => c.classList.remove('selected-box'));
             currentItem = card;
+            currentItem.classList.add('selected-box');
+            
+            // Connect Sliders
             document.getElementById('itemColor').oninput = (e) => currentItem.style.backgroundColor = e.target.value;
+            document.getElementById('itemRound').oninput = (e) => currentItem.style.borderRadius = e.target.value + 'px';
+            document.getElementById('glowRange').oninput = updateGlow;
+            document.getElementById('glowColor').oninput = updateGlow;
+        }
+
+        function updateGlow() {
+            const strength = document.getElementById('glowRange').value;
+            const color = document.getElementById('glowColor').value;
+            if(currentItem) {
+                currentItem.style.boxShadow = `0 0 ${strength}px ${color}`;
+                currentItem.style.borderColor = color;
+            }
         }
 
         function openFolder(card) {
             document.getElementById('fTitle').innerText = card.querySelector('h3').innerText;
             document.getElementById('folderView').style.display = 'grid';
-            currentItem = card; // Link the folder to the card for media saving
+            currentItem = card; 
         }
 
         function closeFolder() { document.getElementById('folderView').style.display = 'none'; }
@@ -181,15 +207,11 @@
                     `<video autoplay loop muted src="${e.target.result}"></video>` : 
                     `<img src="${e.target.result}">`;
                 
-                // Also add a small preview to the card itself
                 if(!isVideo) {
-                    let preview = currentItem.querySelector('.card-img-bg');
-                    if(!preview) {
-                        preview = document.createElement('img');
-                        preview.className = 'card-img-bg';
-                        currentItem.prepend(preview);
-                    }
+                    let preview = currentItem.querySelector('.card-img-bg') || document.createElement('img');
+                    preview.className = 'card-img-bg';
                     preview.src = e.target.result;
+                    currentItem.querySelector('.card').prepend(preview);
                 }
             };
             reader.readAsDataURL(file);
@@ -205,7 +227,7 @@
 
         function downloadResume() {
             const element = document.getElementById('workspace');
-            html2pdf().from(element).save('Natwithat_Resume.pdf');
+            html2pdf().from(element).save('Natwithat_Engineering_Resume.pdf');
         }
 
         function saveAndLock() {
@@ -213,13 +235,13 @@
             document.getElementById('adminSidebar').classList.remove('open');
             workspace.classList.remove('admin-active');
             sortable.option("disabled", true);
-            localStorage.setItem('v11_save', workspace.innerHTML);
-            localStorage.setItem('v11_font', document.body.style.fontFamily);
-            alert("Design Pushed to Local Storage. Perform 'git push' to go live.");
+            document.querySelectorAll('.card').forEach(c => c.classList.remove('selected-box'));
+            localStorage.setItem('v12_save', workspace.innerHTML);
+            alert("Local Update Complete! Run 'git push' to deploy.");
         }
 
         window.onload = () => {
-            const saved = localStorage.getItem('v11_save');
+            const saved = localStorage.getItem('v12_save');
             if(saved) workspace.innerHTML = saved;
         };
     </script>
