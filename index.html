@@ -3,109 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Natwithat | Engineering OS v6</title>
+    <title>Natwithat | Engineering OS v7</title>
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=Outfit:wght@300;600;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
     <style>
-        :root { --bg: #050505; --accent: #38bdf8; }
+        :root { --bg: #050505; --accent: #38bdf8; --card: rgba(20,20,20,0.8); }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: var(--bg); color: #fff; font-family: 'Outfit', sans-serif; overflow-x: hidden; }
+        body { background: var(--bg); color: #fff; font-family: 'Outfit', sans-serif; overflow-x: hidden; transition: 0.5s; background-size: cover; background-position: center; }
 
         /* Canva Sidebar */
         .sidebar {
             position: fixed; left: 0; top: 0; height: 100vh; width: 220px;
             background: #111; border-right: 1px solid #222; padding: 30px 20px;
-            display: flex; flex-direction: column; gap: 15px; z-index: 1000;
+            display: flex; flex-direction: column; gap: 12px; z-index: 1000;
         }
-        .sidebar h2 { font-size: 0.7rem; color: var(--accent); font-family: 'Space Mono'; }
+        .sidebar h2 { font-size: 0.6rem; color: var(--accent); font-family: 'Space Mono'; letter-spacing: 1px; margin-top: 15px; }
         .sidebar button { 
             background: #1a1a1a; color: #eee; border: 1px solid #333; padding: 10px; 
-            border-radius: 8px; cursor: pointer; font-size: 0.8rem; text-align: left;
+            border-radius: 8px; cursor: pointer; font-size: 0.8rem; text-align: left; transition: 0.2s;
         }
-        .sidebar button:hover { background: var(--accent); color: #000; }
+        .sidebar button:hover { background: var(--accent); color: #000; font-weight: bold; }
 
         /* Workspace */
-        #workspace { margin-left: 220px; padding: 60px 5%; min-height: 100vh; display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 25px; align-content: start; }
-        
-        /* Draggable Boxes */
-        .card { 
-            background: rgba(20,20,20,0.8); border: 1px solid #333; border-radius: 20px; 
-            min-height: 350px; padding: 30px; position: relative; cursor: grab;
-            display: flex; flex-direction: column; justify-content: flex-end; transition: 0.3s;
+        #workspace { 
+            margin-left: 220px; padding: 60px 8%; min-height: 100vh; 
+            display: flex; flex-direction: column; gap: 25px; 
         }
-        .card:active { cursor: grabbing; }
         
-        /* Box-Specific Controls */
-        .box-tools { position: absolute; top: 15px; left: 15px; display: flex; gap: 5px; opacity: 0; transition: 0.3s; }
-        .card:hover .box-tools { opacity: 1; }
-        .tool-icon { background: #222; border: 1px solid #444; color: white; padding: 4px 8px; border-radius: 4px; font-size: 10px; cursor: pointer; }
+        /* Draggable Elements */
+        .drag-item { position: relative; cursor: grab; transition: 0.2s; }
+        .drag-item:active { cursor: grabbing; scale: 0.99; }
+        
+        .card { 
+            background: var(--card); border: 1px solid #333; border-radius: 20px; 
+            min-height: 300px; padding: 40px; position: relative;
+            display: flex; flex-direction: column; justify-content: flex-end;
+        }
 
-        /* Folder Modal (Split View) */
+        /* Tooltip Controls */
+        .item-tools { 
+            position: absolute; top: -10px; right: 10px; display: flex; gap: 5px; 
+            opacity: 0; transition: 0.3s; z-index: 10;
+        }
+        .drag-item:hover .item-tools { opacity: 1; }
+        .tool-btn { background: #222; border: 1px solid #444; color: white; padding: 5px 10px; border-radius: 5px; font-size: 10px; cursor: pointer; }
+        .tool-btn:hover { border-color: var(--accent); }
+
+        /* Folder View */
         #folderView {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: #000; z-index: 2000; display: none; grid-template-columns: 1fr 1.5fr;
+            background: #000; z-index: 2000; display: none; grid-template-columns: 1fr 1fr;
         }
-        .folder-left { padding: 80px 10%; display: flex; flex-direction: column; justify-content: center; }
-        .folder-right { background: #111; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
-        .folder-right img, .folder-right video { max-width: 90%; max-height: 80%; border-radius: 10px; box-shadow: 0 0 50px rgba(56, 189, 248, 0.2); }
+        .f-left { padding: 80px 10%; display: flex; flex-direction: column; justify-content: center; }
+        .f-right { background: #0a0a0a; display: flex; align-items: center; justify-content: center; border-left: 1px solid #222; }
+        .f-right img, .f-right video { max-width: 90%; max-height: 80%; border-radius: 12px; }
 
         .editable { outline: none; }
-        .ghost { opacity: 0.2; background: var(--accent) !important; }
+        .ghost { opacity: 0.3; border: 2px dashed var(--accent); }
     </style>
 </head>
 <body id="mainBody">
 
     <div class="sidebar">
-        <h2>GLOBAL DESIGN</h2>
-        <input type="color" oninput="document.body.style.backgroundColor = this.value" style="width:100%;">
-        <button onclick="document.getElementById('bgIn').click()">Upload Background</button>
+        <h2>OBJECTS</h2>
+        <button onclick="addHeading()">+ Add Heading</button>
+        <button onclick="addText()">+ Add Text Box</button>
+        <button onclick="addProject()">+ Project Card</button>
+        <button onclick="addFolder()">+ Folder Card</button>
+        
+        <h2>CANVA TOOLS</h2>
+        <input type="color" oninput="document.body.style.backgroundColor = this.value" style="width:100%; height:35px; cursor:pointer;">
+        <button onclick="document.getElementById('bgIn').click()">Upload BG Image</button>
         <input type="file" id="bgIn" hidden onchange="setGlobalBG(this)">
-        <hr style="border-color:#222">
-        <h2>ADD ELEMENTS</h2>
-        <button onclick="addBox('PROJECT')">+ New Project</button>
-        <button onclick="addBox('FOLDER')">+ New Folder</button>
-        <button onclick="saveAndPush()" style="margin-top:auto; background:var(--accent); color:#000; font-weight:bold;">SAVE TO CLOUD</button>
+        
+        <button onclick="saveAndPush()" style="margin-top:auto; background:var(--accent); color:#000; font-weight:800;">SAVE & PUBLISH</button>
     </div>
 
     <div id="workspace">
-        <div class="card" style="grid-column: 1 / -1; min-height: 200px; background:none; border:none;">
-            <h1 contenteditable="true" class="editable" style="font-size: 5rem;">NATWITHAT DEY</h1>
-            <p contenteditable="true" class="editable" style="color:var(--accent); font-family:'Space Mono';">// SYSTEMS_ENGINEER</p>
+        <div class="drag-item">
+            <h1 contenteditable="true" class="editable" style="font-size: 5rem; line-height:0.9;">NATWITHAT DEY</h1>
+            <p contenteditable="true" class="editable" style="color:var(--accent); font-family:'Space Mono'; margin-top:10px;">// SYSTEM_OPERATOR</p>
         </div>
     </div>
 
     <div id="folderView">
-        <div class="folder-left">
-            <button onclick="closeFolder()" style="width:fit-content; background:none; border:1px solid #444; color:white; padding:10px; cursor:pointer; margin-bottom:40px;">← Back</button>
-            <h2 id="fTitle" contenteditable="true" class="editable" style="font-size:3.5rem;">Folder Title</h2>
-            <p id="fDesc" contenteditable="true" class="editable" style="color:#888; margin-top:20px; line-height:1.6;">Describe the engineering process here. Talk about the welding specs, the CAD constraints, or the material choices.</p>
+        <div class="f-left">
+            <button onclick="closeFolder()" style="width:fit-content; background:none; border:1px solid #444; color:white; padding:8px 15px; cursor:pointer; margin-bottom:30px;">← CLOSE</button>
+            <h2 id="fTitle" contenteditable="true" class="editable" style="font-size:4rem;">Folder Title</h2>
+            <p id="fDesc" contenteditable="true" class="editable" style="color:#888; margin-top:20px; font-size:1.1rem; line-height:1.6;">Click here to write technical details...</p>
         </div>
-        <div class="folder-right" id="fMedia">
-            <p style="color:#333; font-family:'Space Mono';">DROP IMAGE/VIDEO HERE</p>
+        <div class="f-right" id="fMedia">
             <input type="file" id="mediaUpload" hidden onchange="handleMedia(this)">
-            <button onclick="document.getElementById('mediaUpload').click()" style="position:absolute; bottom:30px; background:var(--accent); border:none; padding:10px 20px; border-radius:50px; cursor:pointer;">Upload Media</button>
+            <button onclick="document.getElementById('mediaUpload').click()" style="background:var(--accent); color:black; border:none; padding:12px 24px; border-radius:50px; cursor:pointer; font-weight:bold;">Upload Image/Video</button>
         </div>
     </div>
 
     <script>
         const workspace = document.getElementById('workspace');
-        new Sortable(workspace, { animation: 150, ghostClass: 'ghost' });
+        new Sortable(workspace, { animation: 200, ghostClass: 'ghost' });
 
-        function addBox(type) {
-            const card = document.createElement('div');
-            card.className = 'card';
-            card.innerHTML = `
-                <div class="box-tools">
-                    <input type="color" class="tool-icon" oninput="this.parentElement.parentElement.style.backgroundColor = this.value" title="Change Box Color">
-                    <button class="tool-icon" onclick="this.parentElement.parentElement.remove()">×</button>
+        function addHeading() {
+            createItem(`<h2 contenteditable="true" class="editable" style="font-size:3rem; margin-top:30px; border-bottom:2px solid var(--accent); display:inline-block;">New Section</h2>`);
+        }
+
+        function addText() {
+            createItem(`<p contenteditable="true" class="editable" style="color:#aaa; line-height:1.6; max-width:700px;">Click to write description or about me details here.</p>`);
+        }
+
+        function addProject() {
+            createItem(`
+                <div class="card">
+                    <h3 contenteditable="true" class="editable">Project Title</h3>
+                    <p contenteditable="true" class="editable" style="color:#777;">Brief project overview...</p>
                 </div>
-                <div style="font-family:'Space Mono'; color:var(--accent); font-size:10px; margin-bottom:10px;">// ${type}</div>
-                <h3 contenteditable="true" class="editable">Title</h3>
-                <p contenteditable="true" class="editable" style="color:#666; font-size:0.9rem;">Details...</p>
-                ${type === 'FOLDER' ? '<button onclick="openFolder(this.parentElement)" style="margin-top:15px; background:var(--accent); border:none; padding:5px; border-radius:4px; font-weight:bold; cursor:pointer;">Open Folder</button>' : ''}
+            `, true);
+        }
+
+        function addFolder() {
+            const folder = createItem(`
+                <div class="card" style="border-color:var(--accent);">
+                    <div style="font-family:'Space Mono'; color:var(--accent); font-size:10px; margin-bottom:10px;">// FOLDER</div>
+                    <h3 contenteditable="true" class="editable">Project Folder</h3>
+                    <button onclick="openFolder(this.parentElement)" style="margin-top:15px; background:var(--accent); color:black; border:none; padding:5px 10px; border-radius:5px; font-weight:bold; cursor:pointer;">OPEN FOLDER</button>
+                </div>
+            `, true);
+        }
+
+        function createItem(content, hasColorTool = false) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'drag-item';
+            wrapper.innerHTML = `
+                <div class="item-tools">
+                    ${hasColorTool ? `<input type="color" oninput="this.parentElement.parentElement.querySelector('.card').style.backgroundColor = this.value" class="tool-btn" style="padding:0; width:25px;">` : ''}
+                    <button class="tool-btn" onclick="this.parentElement.parentElement.remove()">×</button>
+                </div>
+                ${content}
             `;
-            workspace.appendChild(card);
+            workspace.appendChild(wrapper);
+            return wrapper;
         }
 
         function openFolder(card) {
@@ -113,9 +149,7 @@
             document.getElementById('folderView').style.display = 'grid';
         }
 
-        function closeFolder() {
-            document.getElementById('folderView').style.display = 'none';
-        }
+        function closeFolder() { document.getElementById('folderView').style.display = 'none'; }
 
         function handleMedia(input) {
             const file = input.files[0];
@@ -133,18 +167,17 @@
             const reader = new FileReader();
             reader.onload = (e) => {
                 document.body.style.backgroundImage = `url(${e.target.result})`;
-                document.body.style.backgroundSize = "cover";
             };
             reader.readAsDataURL(input.files[0]);
         }
 
         function saveAndPush() {
-            localStorage.setItem('canva_os_save', workspace.innerHTML);
-            alert("LOCAL SAVE SUCCESS!\n\nRun 'git push' in your terminal now.");
+            localStorage.setItem('engineering_v7_save', workspace.innerHTML);
+            alert("SAVED LOCALLY!\n\nRun 'git push' in your terminal to go live.");
         }
 
         window.onload = () => {
-            const saved = localStorage.getItem('canva_os_save');
+            const saved = localStorage.getItem('engineering_v7_save');
             if(saved) workspace.innerHTML = saved;
         };
     </script>
