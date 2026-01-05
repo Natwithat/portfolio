@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Natwithat | Engineering OS v4</title>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=Outfit:wght@300;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
+    <style>
+        :root { --bg: #050505; --accent: #38bdf8; --card: rgba(20,20,20,0.9); }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: var(--bg); color: #fff; font-family: 'Outfit', sans-serif; transition: 0.5s; overflow-x: hidden; }
+
+        /* Left Canva Sidebar */
+        .sidebar {
+            position: fixed; left: 0; top: 0; height: 100vh; width: 220px;
+            background: #111; border-right: 1px solid #222; padding: 30px 20px;
+            display: flex; flex-direction: column; gap: 15px; z-index: 1000;
+        }
+        .sidebar h2 { font-size: 0.7rem; color: var(--accent); font-family: 'Space Mono'; letter-spacing: 2px; margin-bottom: 10px; }
+        .sidebar button { 
+            background: #1a1a1a; color: #eee; border: 1px solid #333; padding: 12px; 
+            border-radius: 8px; cursor: pointer; text-align: left; font-size: 0.8rem; transition: 0.2s;
+        }
+        .sidebar button:hover { background: var(--accent); color: #000; font-weight: bold; }
+        .save-btn { margin-top: auto; background: var(--accent) !important; color: #000 !important; font-weight: 800; text-align: center !important; }
+
+        /* Main Workspace */
+        #workspace { margin-left: 220px; padding: 80px 8%; min-height: 100vh; }
+        .editable { outline: none; transition: 0.2s; border-radius: 4px; padding: 5px; }
+        .editable:hover { background: rgba(56, 189, 248, 0.1); }
+
+        /* Grid & Cards */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; margin-top: 30px; min-height: 100px; }
+        .card { 
+            background: var(--card); border: 1px solid #333; border-radius: 15px; 
+            padding: 30px; position: relative; cursor: grab; display: flex; flex-direction: column;
+            justify-content: flex-end; min-height: 300px; transition: 0.3s;
+        }
+        .card:active { cursor: grabbing; scale: 0.98; }
+        .card:hover { border-color: var(--accent); box-shadow: 0 0 20px rgba(56, 189, 248, 0.1); }
+        .card-type { font-family: 'Space Mono'; color: var(--accent); font-size: 0.6rem; margin-bottom: 10px; }
+        .delete-card { position: absolute; top: 15px; right: 15px; background: none; border: none; color: #444; cursor: pointer; font-size: 1.2rem; }
+        .delete-card:hover { color: #ff4444; }
+
+        /* Folder Modal */
+        #folderOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 2000; display: none;
+            padding: 100px 10%; backdrop-filter: blur(10px);
+        }
+
+        /* Shiva-style About Header */
+        .about-header { margin-bottom: 80px; }
+        .about-header h1 { font-size: 5rem; font-weight: 800; line-height: 0.9; }
+        
+        .design-tools { margin-top: 20px; border-top: 1px solid #222; padding-top: 20px; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2>OBJECTS</h2>
+        <button onclick="addHeading()">+ Add Heading</button>
+        <button onclick="addText()">+ Add Text Box</button>
+        <button onclick="addProject()">+ Add Project</button>
+        <button onclick="addFolder()">+ Add Folder</button>
+        
+        <div class="design-tools">
+            <h2>DESIGN</h2>
+            <input type="color" id="bgCol" oninput="document.body.style.backgroundColor = this.value" style="width:100%; height:40px; border:none; background:none; cursor:pointer;">
+            <button onclick="document.getElementById('bgImg').click()" style="width:100%; margin-top:10px;">Upload BG Image</button>
+            <input type="file" id="bgImg" hidden onchange="changeBG(this)">
+        </div>
+
+        <button class="save-btn" onclick="saveAndPush()">SAVE & PUSH</button>
+    </div>
+
+    <div id="workspace">
+        <div class="about-header" data-aos="fade-right">
+            <div class="card-type">// SYSTEM_OPERATOR</div>
+            <h1 class="editable" contenteditable="true" id="userName">NATWITHAT DEY</h1>
+            <p class="editable" contenteditable="true" style="color: #888; margin-top: 15px; font-size: 1.2rem;">Engineering Student. Machine Designer. Fabricator.</p>
+        </div>
+
+        <div class="grid" id="mainGrid">
+            </div>
+    </div>
+
+    <div id="folderOverlay">
+        <button onclick="closeFolder()" style="background:var(--accent); color:black; border:none; padding:10px 20px; border-radius:5px; cursor:pointer; margin-bottom:30px;">← CLOSE FOLDER</button>
+        <h2 id="folderNameDisplay" style="font-size: 3rem; margin-bottom: 20px;">Folder Name</h2>
+        <div class="grid" id="folderGrid"></div>
+        <button onclick="addProjectToFolder()" style="margin-top:20px; background:#222; color:white; border:1px solid #444; padding:10px;">+ Add Project Inside</button>
+    </div>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init();
+
+        // Initialize Drag and Drop (Sortable)
+        const mainGrid = document.getElementById('mainGrid');
+        new Sortable(mainGrid, { animation: 150, ghostClass: 'sortable-ghost' });
+        const folderGrid = document.getElementById('folderGrid');
+        new Sortable(folderGrid, { animation: 150, ghostClass: 'sortable-ghost' });
+
+        function addHeading() {
+            const h = document.createElement('h2');
+            h.className = 'editable';
+            h.contentEditable = 'true';
+            h.style = 'font-size: 2.5rem; margin-top: 40px; border-bottom: 2px solid var(--accent); width: fit-content;';
+            h.innerText = 'New Section';
+            document.getElementById('workspace').appendChild(h);
+        }
+
+        function addText() {
+            const p = document.createElement('p');
+            p.className = 'editable';
+            p.contentEditable = 'true';
+            p.style = 'color: #666; margin-top: 10px; line-height: 1.6;';
+            p.innerText = 'Start typing your description here...';
+            document.getElementById('workspace').appendChild(p);
+        }
+
+        function addProject() {
+            createCard(mainGrid, "PROJECT");
+        }
+
+        function addFolder() {
+            const card = createCard(mainGrid, "FOLDER");
+            card.style.borderColor = "var(--accent)";
+            card.onclick = () => openFolder(card);
+        }
+
+        function createCard(target, type) {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `
+                <button class="delete-card" onclick="this.parentElement.remove()">×</button>
+                <div class="card-type">// ${type}</div>
+                <h3 contenteditable="true" class="editable">Title</h3>
+                <p contenteditable="true" class="editable">Click to edit details.</p>
+            `;
+            target.appendChild(card);
+            return card;
+        }
+
+        function openFolder(card) {
+            const name = card.querySelector('h3').innerText;
+            document.getElementById('folderNameDisplay').innerText = name;
+            document.getElementById('folderOverlay').style.display = "block";
+        }
+
+        function closeFolder() {
+            document.getElementById('folderOverlay').style.display = "none";
+        }
+
+        function addProjectToFolder() {
+            createCard(folderGrid, "SUB_PROJECT");
+        }
+
+        function changeBG(input) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.body.style.backgroundImage = `url(${e.target.result})`;
+                document.body.style.backgroundSize = "cover";
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+
+        function saveAndPush() {
+            // This saves the structure to your browser's local storage
+            const data = {
+                html: document.getElementById('workspace').innerHTML,
+                bg: document.body.style.backgroundColor,
+                bgI: document.body.style.backgroundImage
+            };
+            localStorage.setItem('engineering_portfolio_v4', JSON.stringify(data));
+            alert("LOCAL SAVE SUCCESS!\n\nNow go to your terminal and type:\ngit add . && git commit -m 'Design Update' && git push");
+        }
+
+        // Auto Load
+        window.onload = () => {
+            const saved = localStorage.getItem('engineering_portfolio_v4');
+            if(saved) {
+                const data = JSON.parse(saved);
+                document.getElementById('workspace').innerHTML = data.html;
+                document.body.style.backgroundColor = data.bg;
+                document.body.style.backgroundImage = data.bgI;
+            }
+        };
+    </script>
+</body>
+</html>
